@@ -1,4 +1,3 @@
-```markdown
 # Streamlet Consensus Protocol - Chapter 7 Implementation
 
 **"Foundations of Distributed Consensus and Blockchains" by Elaine Shi** [file:1]
@@ -88,5 +87,5 @@ cd ../ && python -m market_sim.consensus.visualize
 **Fork:** `codes-by-sethu/investment`  
 ```
 
-***
+
 
