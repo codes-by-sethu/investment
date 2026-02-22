@@ -3,14 +3,16 @@ Visualization script for Streamlet Finalization.
 Plots the growth of notarized blocks vs finalized blocks.
 """
 import matplotlib.pyplot as plt
-from engine import StreamletEngine
-from models import MarketBlock
+# Ensure absolute imports for consistency with pytest setup
+from market_sim.consensus.engine import StreamletEngine
+from market_sim.consensus.models import MarketBlock
 
 def visualize_streamlet():
+    # Initialize with 10 nodes (Quorum = 7)
     engine = StreamletEngine(total_nodes=10)
     
     # 1. Simulate a notarized chain with gaps and consecutive runs
-    # Epochs: 0 (Genesis), 1, 3, 4, 5 (Run), 7, 8, 9 (Run)
+    # Consecutive epochs trigger finalization (e.g., 3, 4, 5)
     epochs = [0, 1, 3, 4, 5, 7, 8, 9]
     prices = [50000 + (i * 10) for i in range(len(epochs))]
     
@@ -22,25 +24,32 @@ def visualize_streamlet():
         notarized_chain.append(block)
         parent_hash = engine.compute_hash(block)
 
-    # 2. Get finalized segments at each step of growth
+    # 2. Track finalized block count at each step of the simulation
     finalized_counts = []
     for i in range(1, len(notarized_chain) + 1):
         current_finalized = engine.get_finalized_chain(notarized_chain[:i])
         finalized_counts.append(len(current_finalized))
 
-    # 3. Plotting
+    # 3. Create the plot
     plt.figure(figsize=(10, 6))
-    plt.step(epochs, [i+1 for i in range(len(epochs))], where='post', label='Notarized Blocks', color='blue', linestyle='--')
-    plt.step(epochs, finalized_counts, where='post', label='Finalized Blocks', color='green', linewidth=2)
     
-    plt.title("Streamlet Consensus: Notarization vs. Finalization")
-    plt.xlabel("Epochs")
-    plt.ylabel("Block Count")
+    # Notarized blocks grow with every epoch update
+    plt.step(epochs, [i+1 for i in range(len(epochs))], where='post', 
+             label='Notarized Blocks (2n/3 votes)', color='blue', linestyle='--')
+    
+    # Finalized blocks only jump when the 3-consecutive-epoch rule is met
+    plt.step(epochs, finalized_counts, where='post', 
+             label='Finalized Blocks (3 Consecutive Epochs)', color='green', linewidth=2)
+    
+    plt.title("Streamlet Consensus Progress")
+    plt.xlabel("Epoch Number")
+    plt.ylabel("Cumulative Block Count")
     plt.legend()
     plt.grid(True, alpha=0.3)
     
-    print("Generating consensus_plot.png...")
-    plt.savefig("consensus_plot.png")
+    output_file = "consensus_plot.png"
+    print(f"Generating {output_file}...")
+    plt.savefig(output_file)
     plt.show()
 
 if __name__ == "__main__":
